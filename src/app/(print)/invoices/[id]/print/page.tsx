@@ -23,6 +23,10 @@ export async function generateMetadata({
   };
 }
 
+function joinParts(parts: (string | null | undefined)[], separator: string) {
+  return parts.map((part) => part?.trim()).filter(Boolean).join(separator);
+}
+
 const STATUS_LABEL: Record<string, string> = {
   draft: "Brouillon",
   sent: "Envoyée",
@@ -46,6 +50,17 @@ export default async function InvoicePrintPage({
   const outstanding = outstandingAmount(invoice);
   const status = effectiveStatus(invoice);
 
+  const companyLocation = joinParts([company?.city, company?.country], ", ");
+  const companyContact = joinParts([company?.phone, company?.email], " · ");
+  const companyRegistration = joinParts(
+    [
+      company?.ninea ? `NINEA ${company.ninea}` : null,
+      company?.rccm ? `RCCM ${company.rccm}` : null,
+    ],
+    " · ",
+  );
+  const clientLocation = joinParts([client?.city, client?.country], ", ");
+
   return (
     <div className="mx-auto max-w-3xl bg-white p-10 text-[13px] text-ink print:p-0">
       <PrintTrigger />
@@ -55,16 +70,16 @@ export default async function InvoicePrintPage({
           <p className="text-lg font-semibold">
             {company?.legalName || company?.name}
           </p>
-          <p className="text-ink-soft">{company?.address}</p>
-          <p className="text-ink-soft">
-            {company?.city}, {company?.country}
-          </p>
-          <p className="text-ink-soft">
-            {company?.phone} · {company?.email}
-          </p>
-          <p className="mt-2 text-ink-faint">
-            NINEA {company?.ninea} · RCCM {company?.rccm}
-          </p>
+          {company?.address && (
+            <p className="text-ink-soft">{company.address}</p>
+          )}
+          {companyLocation && (
+            <p className="text-ink-soft">{companyLocation}</p>
+          )}
+          {companyContact && <p className="text-ink-soft">{companyContact}</p>}
+          {companyRegistration && (
+            <p className="mt-2 text-ink-faint">{companyRegistration}</p>
+          )}
         </div>
         <div className="text-right">
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -84,12 +99,14 @@ export default async function InvoicePrintPage({
         <p className="text-xs uppercase tracking-wide text-ink-faint">
           Facturé à
         </p>
-        <p className="mt-1 font-semibold">{client?.companyName}</p>
-        <p className="text-ink-soft">{client?.name}</p>
-        <p className="text-ink-soft">{client?.address}</p>
-        <p className="text-ink-soft">
-          {client?.city}, {client?.country}
+        <p className="mt-1 font-semibold">
+          {client?.companyName || client?.name}
         </p>
+        {client?.companyName && client.name && (
+          <p className="text-ink-soft">{client.name}</p>
+        )}
+        {client?.address && <p className="text-ink-soft">{client.address}</p>}
+        {clientLocation && <p className="text-ink-soft">{clientLocation}</p>}
         {invoice.projectName && (
           <p className="mt-3 text-ink-soft">Objet : {invoice.projectName}</p>
         )}
