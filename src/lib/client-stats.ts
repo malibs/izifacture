@@ -1,5 +1,5 @@
-import { getInvoicesByClient } from "@/lib/data/invoices";
 import { effectiveStatus, invoiceTotal, outstandingAmount } from "@/lib/invoice-math";
+import type { Invoice } from "@/types";
 
 export interface ClientStats {
   invoiceCount: number;
@@ -9,9 +9,8 @@ export interface ClientStats {
   lastIssueDate?: string;
 }
 
-export function getClientStats(clientId: string): ClientStats {
-  const clientInvoices = getInvoicesByClient(clientId);
-
+/** Agrège les factures d'un client ; les brouillons ne comptent pas comme facturé. */
+export function getClientStats(clientInvoices: Invoice[]): ClientStats {
   return clientInvoices.reduce<ClientStats>(
     (stats, invoice) => {
       const status = effectiveStatus(invoice);

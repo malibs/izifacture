@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
 import { formatDate, formatFCFA } from "@/lib/format";
@@ -38,10 +38,13 @@ export function ClientsView({ rows }: { rows: ClientRow[] }) {
         title="Clients"
         description="Vos clients, leur encours et leur historique de facturation."
         actions={
-          <Button size="sm" variant="primary">
+          <Link
+            href="/clients/new"
+            className={buttonStyles({ variant: "primary", size: "sm" })}
+          >
             <Plus className="h-4 w-4" />
             Nouveau client
-          </Button>
+          </Link>
         }
       />
 

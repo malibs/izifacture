@@ -1,9 +1,26 @@
-import { AppShell } from "@/components/layout/app-shell";
+import { redirect } from "next/navigation";
 
-export default function AppLayout({
+import { AppShell } from "@/components/layout/app-shell";
+import { getCurrentProfile, getOrganization } from "@/lib/queries";
+
+export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AppShell>{children}</AppShell>;
+  const [profile, organization] = await Promise.all([
+    getCurrentProfile(),
+    getOrganization(),
+  ]);
+
+  if (!profile) redirect("/login");
+
+  return (
+    <AppShell
+      organizationName={organization?.name ?? "Mon entreprise"}
+      user={{ fullName: profile.fullName, email: profile.email }}
+    >
+      {children}
+    </AppShell>
+  );
 }

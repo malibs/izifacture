@@ -21,7 +21,7 @@ import {
   getMonthlySeries,
   getRecentInvoices,
 } from "@/lib/dashboard";
-import { currentUser } from "@/lib/data/company";
+import { getCurrentProfile, listClients, listInvoices } from "@/lib/queries";
 import { formatFCFA } from "@/lib/format";
 import { statusLabel } from "@/components/ui/status-badge";
 import type { InvoiceStatus } from "@/types";
@@ -39,15 +39,22 @@ const STATUS_DOTS: Record<InvoiceStatus, string> = {
   overdue: "bg-status-overdue",
 };
 
-export default function DashboardPage() {
-  const stats = getDashboardStats();
-  const series = getMonthlySeries();
-  const recent = getRecentInvoices();
+export default async function DashboardPage() {
+  const [invoices, clients, profile] = await Promise.all([
+    listInvoices(),
+    listClients(),
+    getCurrentProfile(),
+  ]);
+
+  const stats = getDashboardStats(invoices);
+  const series = getMonthlySeries(invoices);
+  const recent = getRecentInvoices(invoices);
+  const firstName = profile?.fullName.split(" ")[0] ?? "";
 
   return (
     <div className="space-y-5">
       <PageHeader
-        title={`Bonjour ${currentUser.fullName.split(" ")[0]}`}
+        title={firstName ? `Bonjour ${firstName}` : "Tableau de bord"}
         description="Voici l'état de votre facturation aujourd'hui."
         actions={
           <>
@@ -166,7 +173,7 @@ export default function DashboardPage() {
             <ArrowRight className="h-4 w-4" />
           </Link>
         </CardHeader>
-        <InvoiceTable invoices={recent} />
+        <InvoiceTable invoices={recent} clients={clients} />
       </Card>
     </div>
   );

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronsUpDown, Search, X } from "lucide-react";
+import { LogOut, Search, X } from "lucide-react";
 
-import { company, currentUser } from "@/lib/data/company";
+import { signOut } from "@/app/(auth)/actions";
 import { navSections } from "@/lib/nav";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,15 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+export function Sidebar({
+  organizationName,
+  user,
+  onNavigate,
+}: {
+  organizationName: string;
+  user: { fullName: string; email: string };
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
 
   return (
@@ -25,10 +33,10 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           className="flex items-center gap-2.5"
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-500 text-sm font-bold text-white">
-            B
+            {organizationName.charAt(0).toUpperCase()}
           </span>
           <span className="text-[17px] font-semibold tracking-tight">
-            {company.name.split(" ")[0]}
+            {organizationName.split(" ")[0]}
           </span>
         </Link>
         <button
@@ -96,23 +104,25 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="border-t border-line p-3">
-        <button
-          type="button"
-          className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-surface-muted"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
-            {initials(currentUser.fullName)}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-medium">
-              {currentUser.fullName}
+        <form action={signOut}>
+          <button
+            type="submit"
+            className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-surface-muted"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">
+              {initials(user.fullName)}
             </span>
-            <span className="block truncate text-xs text-ink-faint">
-              {currentUser.email}
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">
+                {user.fullName}
+              </span>
+              <span className="block truncate text-xs text-ink-faint">
+                {user.email}
+              </span>
             </span>
-          </span>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 text-ink-faint" />
-        </button>
+            <LogOut className="h-4 w-4 shrink-0 text-ink-faint" />
+          </button>
+        </form>
       </div>
     </div>
   );

@@ -8,35 +8,28 @@ import { Avatar } from "@/components/ui/avatar";
 import { buttonStyles } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { getClientStats } from "@/lib/client-stats";
-import { clients, getClient } from "@/lib/data/clients";
-import { getInvoicesByClient } from "@/lib/data/invoices";
+import { getClient, listInvoicesByClient } from "@/lib/queries";
 import { formatFCFA } from "@/lib/format";
 
-export function generateStaticParams() {
-  return clients.map((client) => ({ id: client.id }));
-}
-
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
   params: { id: string };
-}): Metadata {
-  const client = getClient(params.id);
+}): Promise<Metadata> {
+  const client = await getClient(params.id);
   return { title: client?.companyName ?? "Client" };
 }
 
-export default function ClientDetailPage({
+export default async function ClientDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const client = getClient(params.id);
+  const client = await getClient(params.id);
   if (!client) notFound();
 
-  const stats = getClientStats(client.id);
-  const clientInvoices = [...getInvoicesByClient(client.id)].sort((a, b) =>
-    b.issueDate.localeCompare(a.issueDate),
-  );
+  const clientInvoices = await listInvoicesByClient(client.id);
+  const stats = getClientStats(clientInvoices);
 
   const summary = [
     { label: "Total facturé", value: formatFCFA(stats.invoiced) },
@@ -118,7 +111,7 @@ export default function ClientDetailPage({
           <CardTitle>Factures du client</CardTitle>
         </CardHeader>
         {clientInvoices.length > 0 ? (
-          <InvoiceTable invoices={clientInvoices} />
+          <InvoiceTable invoices={clientInvoices} clients={[client]} />
         ) : (
           <div className="px-5 pb-6 text-sm text-ink-soft">
             Aucune facture pour ce client.

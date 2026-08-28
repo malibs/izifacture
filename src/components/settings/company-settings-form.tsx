@@ -1,38 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Upload } from "lucide-react";
 
+import { updateOrganization } from "@/app/(app)/settings/actions";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { PageHeader } from "@/components/layout/page-header";
-import { company } from "@/lib/data/company";
+import type { Organization } from "@/types";
 
-export function CompanySettingsForm() {
+export function CompanySettingsForm({
+  organization,
+}: {
+  organization: Organization;
+}) {
   const [form, setForm] = useState({
-    name: company.name,
-    legalName: company.legalName,
-    email: company.email,
-    phone: company.phone,
-    address: company.address,
-    city: company.city,
-    country: company.country,
-    ninea: company.ninea,
-    rccm: company.rccm,
-    currency: company.currency,
-    defaultVatRate: String(company.defaultVatRate),
-    invoicePrefix: company.invoicePrefix,
-    paymentTermsDays: "30",
-    footerNote:
-      "Règlement par virement ou mobile money sous 30 jours. Pénalités de retard : 1,5 % par mois.",
+    name: organization.name,
+    legalName: organization.legalName,
+    email: organization.email,
+    phone: organization.phone,
+    address: organization.address,
+    city: organization.city,
+    country: organization.country,
+    ninea: organization.ninea,
+    rccm: organization.rccm,
+    currency: organization.currency,
+    defaultVatRate: String(organization.defaultVatRate),
+    invoicePrefix: organization.invoicePrefix,
+    paymentTermsDays: String(organization.paymentTermsDays),
+    footerNote: organization.invoiceFooterNote,
   });
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
   const update = (patch: Partial<typeof form>) => {
     setForm((current) => ({ ...current, ...patch }));
     setSaved(false);
+    setError(null);
   };
 
   return (
@@ -40,23 +47,42 @@ export function CompanySettingsForm() {
       className="space-y-5"
       onSubmit={(event) => {
         event.preventDefault();
-        setSaved(true);
+        setError(null);
+        startTransition(async () => {
+          const result = await updateOrganization({
+            ...form,
+            defaultVatRate: Number(form.defaultVatRate.replace(",", ".")),
+            paymentTermsDays: Number.parseInt(form.paymentTermsDays, 10) || 0,
+            invoiceFooterNote: form.footerNote,
+          });
+
+          if (result.ok) setSaved(true);
+          else setError(result.error);
+        });
       }}
     >
       <PageHeader
         title="Paramètres"
         description="Informations reprises sur toutes vos factures."
         actions={
-          <Button type="submit" size="sm" variant="primary">
-            Enregistrer
+          <Button type="submit" size="sm" variant="primary" disabled={pending}>
+            {pending ? "Enregistrement…" : "Enregistrer"}
           </Button>
         }
       />
 
       {saved && (
         <div className="rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800">
-          Modifications validées côté client. La persistance arrive avec
-          Supabase à la phase suivante.
+          Paramètres enregistrés.
+        </div>
+      )}
+
+      {error && (
+        <div
+          role="alert"
+          className="rounded-2xl border border-status-overdue/30 bg-status-overdueSoft px-4 py-3 text-sm text-status-overdue"
+        >
+          {error}
         </div>
       )}
 

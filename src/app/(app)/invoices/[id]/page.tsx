@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Download, Send } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
+import { InvoiceActions } from "@/components/invoices/invoice-actions";
 import { Avatar } from "@/components/ui/avatar";
-import { Button, buttonStyles } from "@/components/ui/button";
+import { buttonStyles } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { getClient } from "@/lib/data/clients";
-import { company } from "@/lib/data/company";
-import { getInvoice, invoices } from "@/lib/data/invoices";
+import { getClient, getInvoice, getOrganization } from "@/lib/queries";
 import { daysUntil, formatDate, formatFCFA } from "@/lib/format";
 import {
   computeTotals,
@@ -18,16 +17,12 @@ import {
   outstandingAmount,
 } from "@/lib/invoice-math";
 
-export function generateStaticParams() {
-  return invoices.map((invoice) => ({ id: invoice.id }));
-}
-
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
   params: { id: string };
-}): Metadata {
-  const invoice = getInvoice(params.id);
+}): Promise<Metadata> {
+  const invoice = await getInvoice(params.id);
   return { title: invoice?.number ?? "Facture" };
 }
 
@@ -39,15 +34,18 @@ function dueLabel(dueDate: string, status: string) {
   return `Dans ${days} jour(s)`;
 }
 
-export default function InvoiceDetailPage({
+export default async function InvoiceDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const invoice = getInvoice(params.id);
+  const invoice = await getInvoice(params.id);
   if (!invoice) notFound();
 
-  const client = getClient(invoice.clientId);
+  const [client, company] = await Promise.all([
+    getClient(invoice.clientId),
+    getOrganization(),
+  ]);
   const status = effectiveStatus(invoice);
   const totals = computeTotals(invoice.items, invoice.vatRate);
   const outstanding = outstandingAmount(invoice);
@@ -71,29 +69,26 @@ export default function InvoiceDetailPage({
           </div>
           <p className="mt-1 text-sm text-ink-soft">{invoice.projectName}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm">
-            <Download className="h-4 w-4" />
-            Télécharger le PDF
-          </Button>
-          <Button size="sm" variant="primary" disabled={status === "paid"}>
-            <Send className="h-4 w-4" />
-            Envoyer au client
-          </Button>
-        </div>
+        <InvoiceActions
+          invoiceId={invoice.id}
+          status={status}
+          outstanding={outstanding}
+        />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="flex-col items-start gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="text-sm">
-              <p className="text-base font-semibold">{company.legalName}</p>
-              <p className="text-ink-soft">{company.address}</p>
+              <p className="text-base font-semibold">
+                {company?.legalName || company?.name}
+              </p>
+              <p className="text-ink-soft">{company?.address}</p>
               <p className="text-ink-soft">
-                {company.city}, {company.country}
+                {company?.city}, {company?.country}
               </p>
               <p className="mt-2 text-ink-faint">
-                NINEA {company.ninea} · RCCM {company.rccm}
+                NINEA {company?.ninea} · RCCM {company?.rccm}
               </p>
             </div>
             <div className="text-sm sm:text-right">

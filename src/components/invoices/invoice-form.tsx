@@ -1,18 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { Plus, Trash2 } from "lucide-react";
 
+import { createInvoice } from "@/app/(app)/invoices/actions";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { PageHeader } from "@/components/layout/page-header";
-import { clients } from "@/lib/data/clients";
-import { company } from "@/lib/data/company";
 import { formatFCFA } from "@/lib/format";
 import { computeTotals, lineTotal } from "@/lib/invoice-math";
-import type { InvoiceItem } from "@/types";
+import type { Client, InvoiceItem } from "@/types";
 
 /** Ligne en cours de saisie : les champs numériques peuvent être vides. */
 interface DraftItem {
@@ -64,15 +63,26 @@ function addDaysIso(days: number) {
   return date.toISOString().slice(0, 10);
 }
 
-export function InvoiceForm({ nextNumber }: { nextNumber: string }) {
+export function InvoiceForm({
+  nextNumber,
+  clients,
+  defaultVatRate,
+  paymentTermsDays,
+}: {
+  nextNumber: string;
+  clients: Client[];
+  defaultVatRate: number;
+  paymentTermsDays: number;
+}) {
   const [clientId, setClientId] = useState(clients[0]?.id ?? "");
   const [projectName, setProjectName] = useState("");
   const [issueDate, setIssueDate] = useState(todayIso);
-  const [dueDate, setDueDate] = useState(() => addDaysIso(30));
-  const [vatRate, setVatRate] = useState(String(company.defaultVatRate));
+  const [dueDate, setDueDate] = useState(() => addDaysIso(paymentTermsDays));
+  const [vatRate, setVatRate] = useState(String(defaultVatRate));
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<DraftItem[]>([emptyItem()]);
-  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
   const totals = useMemo(
     () => computeTotals(items.map(toDomainItem), toInteger(vatRate)),
@@ -83,7 +93,7 @@ export function InvoiceForm({ nextNumber }: { nextNumber: string }) {
     setItems((current) =>
       current.map((item) => (item.id === id ? { ...item, ...patch } : item)),
     );
-    setSaved(false);
+    setError(null);
   };
 
   const removeItem = (id: string) => {
@@ -99,7 +109,29 @@ export function InvoiceForm({ nextNumber }: { nextNumber: string }) {
       className="space-y-5"
       onSubmit={(event) => {
         event.preventDefault();
-        setSaved(true);
+        setError(null);
+        startTransition(async () => {
+          const result = await createInvoice({
+            clientId,
+            projectName,
+            issueDate,
+            dueDate,
+            vatRate: toInteger(vatRate),
+            items: items.map((item) => {
+              const domain = toDomainItem(item);
+              return {
+                description: domain.description,
+                quantity: domain.quantity,
+                unitPrice: domain.unitPrice,
+                vatApplicable: domain.vatApplicable,
+              };
+            }),
+            notes,
+            terms: "",
+          });
+
+          if (result && !result.ok) setError(result.error);
+        });
       }}
     >
       <PageHeader
@@ -110,17 +142,24 @@ export function InvoiceForm({ nextNumber }: { nextNumber: string }) {
             <Link href="/invoices" className={buttonStyles({ size: "sm" })}>
               Annuler
             </Link>
-            <Button type="submit" size="sm" variant="primary">
-              Enregistrer le brouillon
+            <Button
+              type="submit"
+              size="sm"
+              variant="primary"
+              disabled={pending}
+            >
+              {pending ? "Enregistrement…" : "Enregistrer le brouillon"}
             </Button>
           </>
         }
       />
 
-      {saved && (
-        <div className="rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800">
-          Facture calculée et validée côté client. La persistance arrive avec
-          Supabase à la phase suivante.
+      {error && (
+        <div
+          role="alert"
+          className="rounded-2xl border border-status-overdue/30 bg-status-overdueSoft px-4 py-3 text-sm text-status-overdue"
+        >
+          {error}
         </div>
       )}
 

@@ -44,6 +44,25 @@ export interface Invoice {
   owner: string;
 }
 
+export interface Organization {
+  id: string;
+  name: string;
+  legalName: string;
+  address: string;
+  city: string;
+  country: string;
+  email: string;
+  phone: string;
+  ninea: string;
+  rccm: string;
+  currency: string;
+  /** Taux de TVA appliqué par défaut aux nouvelles factures. */
+  defaultVatRate: number;
+  invoicePrefix: string;
+  paymentTermsDays: number;
+  invoiceFooterNote: string;
+}
+
 export interface InvoiceTotals {
   subtotal: number;
   vat: number;

@@ -3,13 +3,11 @@ import { MoreHorizontal } from "lucide-react";
 
 import { Avatar } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { getClient } from "@/lib/data/clients";
 import { formatDate, formatFCFA } from "@/lib/format";
 import { effectiveStatus, invoiceTotal } from "@/lib/invoice-math";
-import type { Invoice } from "@/types";
+import type { Client, Invoice } from "@/types";
 
-function Row({ invoice }: { invoice: Invoice }) {
-  const client = getClient(invoice.clientId);
+function Row({ invoice, client }: { invoice: Invoice; client?: Client }) {
   const status = effectiveStatus(invoice);
 
   return (
@@ -60,9 +58,13 @@ function Row({ invoice }: { invoice: Invoice }) {
   );
 }
 
-function MobileCard({ invoice }: { invoice: Invoice }) {
-  const client = getClient(invoice.clientId);
-
+function MobileCard({
+  invoice,
+  client,
+}: {
+  invoice: Invoice;
+  client?: Client;
+}) {
   return (
     <Link
       href={`/invoices/${invoice.id}`}
@@ -89,12 +91,24 @@ function MobileCard({ invoice }: { invoice: Invoice }) {
   );
 }
 
-export function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
+export function InvoiceTable({
+  invoices,
+  clients,
+}: {
+  invoices: Invoice[];
+  clients: Client[];
+}) {
+  const byId = new Map(clients.map((client) => [client.id, client]));
+
   return (
     <>
       <div className="sm:hidden">
         {invoices.map((invoice) => (
-          <MobileCard key={invoice.id} invoice={invoice} />
+          <MobileCard
+            key={invoice.id}
+            invoice={invoice}
+            client={byId.get(invoice.clientId)}
+          />
         ))}
       </div>
 
@@ -129,7 +143,11 @@ export function InvoiceTable({ invoices }: { invoices: Invoice[] }) {
         </thead>
         <tbody>
           {invoices.map((invoice) => (
-            <Row key={invoice.id} invoice={invoice} />
+            <Row
+              key={invoice.id}
+              invoice={invoice}
+              client={byId.get(invoice.clientId)}
+            />
           ))}
         </tbody>
       </table>

@@ -1,4 +1,3 @@
-import { invoices } from "@/lib/data/invoices";
 import { effectiveStatus, invoiceTotal, outstandingAmount } from "@/lib/invoice-math";
 import type { Invoice, InvoiceStatus } from "@/types";
 
@@ -15,7 +14,7 @@ export interface DashboardStats {
 /** Les brouillons ne comptent pas comme chiffre d'affaires facturé. */
 const isIssued = (invoice: Invoice) => effectiveStatus(invoice) !== "draft";
 
-export function getDashboardStats(source: Invoice[] = invoices): DashboardStats {
+export function getDashboardStats(source: Invoice[]): DashboardStats {
   const issued = source.filter(isIssued);
 
   const totalInvoiced = issued.reduce((sum, inv) => sum + invoiceTotal(inv), 0);
@@ -69,7 +68,7 @@ export interface MonthlyPoint {
 
 /** Agrège le facturé et l'encaissé sur les `months` derniers mois. */
 export function getMonthlySeries(
-  source: Invoice[] = invoices,
+  source: Invoice[],
   months = 6,
 ): MonthlyPoint[] {
   const buckets = new Map<string, MonthlyPoint>();
@@ -107,7 +106,7 @@ export function getMonthlySeries(
 }
 
 /** Les factures les plus récentes, du plus récent au plus ancien. */
-export function getRecentInvoices(source: Invoice[] = invoices, limit = 7) {
+export function getRecentInvoices(source: Invoice[], limit = 7) {
   return [...source]
     .sort((a, b) => b.issueDate.localeCompare(a.issueDate))
     .slice(0, limit);

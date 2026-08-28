@@ -8,11 +8,10 @@ import { InvoiceTable } from "@/components/invoices/invoice-table";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
-import { getClient } from "@/lib/data/clients";
 import { formatFCFA } from "@/lib/format";
 import { effectiveStatus, invoiceTotal } from "@/lib/invoice-math";
 import { cn } from "@/lib/utils";
-import type { Invoice, InvoiceStatus } from "@/types";
+import type { Client, Invoice, InvoiceStatus } from "@/types";
 
 type Filter = "all" | InvoiceStatus;
 
@@ -24,8 +23,7 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: "overdue", label: "En retard" },
 ];
 
-function matchesSearch(invoice: Invoice, query: string) {
-  const client = getClient(invoice.clientId);
+function matchesSearch(invoice: Invoice, client: Client | undefined, query: string) {
   const haystack = [
     invoice.number,
     invoice.projectName,
@@ -40,9 +38,20 @@ function matchesSearch(invoice: Invoice, query: string) {
   return haystack.includes(query.trim().toLowerCase());
 }
 
-export function InvoicesView({ invoices }: { invoices: Invoice[] }) {
+export function InvoicesView({
+  invoices,
+  clients,
+}: {
+  invoices: Invoice[];
+  clients: Client[];
+}) {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+
+  const byId = useMemo(
+    () => new Map(clients.map((client) => [client.id, client])),
+    [clients],
+  );
 
   const counts = useMemo(() => {
     const base: Record<Filter, number> = {
@@ -63,9 +72,11 @@ export function InvoicesView({ invoices }: { invoices: Invoice[] }) {
       .filter(
         (invoice) => filter === "all" || effectiveStatus(invoice) === filter,
       )
-      .filter((invoice) => matchesSearch(invoice, query))
+      .filter((invoice) =>
+        matchesSearch(invoice, byId.get(invoice.clientId), query),
+      )
       .sort((a, b) => b.issueDate.localeCompare(a.issueDate));
-  }, [invoices, filter, query]);
+  }, [invoices, filter, query, byId]);
 
   const visibleTotal = visible.reduce(
     (sum, invoice) => sum + invoiceTotal(invoice),
@@ -136,7 +147,7 @@ export function InvoicesView({ invoices }: { invoices: Invoice[] }) {
 
         {visible.length > 0 ? (
           <>
-            <InvoiceTable invoices={visible} />
+            <InvoiceTable invoices={visible} clients={clients} />
             <div className="flex items-center justify-between border-t border-line px-5 py-3 text-sm text-ink-soft">
               <span>
                 {visible.length} facture{visible.length > 1 ? "s" : ""}

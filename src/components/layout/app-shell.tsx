@@ -8,20 +8,28 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { cn } from "@/lib/utils";
 
-function usePageTitle() {
+function usePageTitle(fallback: string) {
   const pathname = usePathname();
   const match = navSections
     .flatMap((section) => section.items)
     .find(
       (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
     );
-  return match?.label ?? "Baraka Studio";
+  return match?.label ?? fallback;
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  organizationName,
+  user,
+}: {
+  children: React.ReactNode;
+  organizationName: string;
+  user: { fullName: string; email: string };
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
-  const title = usePageTitle();
+  const title = usePageTitle(organizationName);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -37,7 +45,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[264px_1fr]">
       <aside className="hidden lg:block lg:h-screen lg:sticky lg:top-0">
-        <Sidebar />
+        <Sidebar organizationName={organizationName} user={user} />
       </aside>
 
       {/* Tiroir mobile */}
@@ -61,7 +69,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             menuOpen ? "translate-x-0" : "-translate-x-full",
           )}
         >
-          <Sidebar onNavigate={() => setMenuOpen(false)} />
+          <Sidebar
+            organizationName={organizationName}
+            user={user}
+            onNavigate={() => setMenuOpen(false)}
+          />
         </div>
       </div>
 
