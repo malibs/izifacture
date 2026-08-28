@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 
-import { ComingSoon } from "@/components/layout/coming-soon";
+import { InvoicesView } from "@/components/invoices/invoices-view";
+import { invoices } from "@/lib/data/invoices";
 
 export const metadata: Metadata = { title: "Factures" };
 
 export default function Page() {
-  return (
-    <ComingSoon
-      title="Factures"
-      description="Toutes vos factures, filtres et actions groupées."
-    />
-  );
+  return <InvoicesView invoices={invoices} />;
 }

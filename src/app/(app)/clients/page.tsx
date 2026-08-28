@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 
-import { ComingSoon } from "@/components/layout/coming-soon";
+import { ClientsView } from "@/components/clients/clients-view";
+import { getClientStats } from "@/lib/client-stats";
+import { clients } from "@/lib/data/clients";
 
 export const metadata: Metadata = { title: "Clients" };
 
 export default function Page() {
-  return (
-    <ComingSoon
-      title="Clients"
-      description="Votre carnet de clients et leur historique."
-    />
-  );
+  const rows = clients.map((client) => ({
+    client,
+    stats: getClientStats(client.id),
+  }));
+
+  return <ClientsView rows={rows} />;
 }

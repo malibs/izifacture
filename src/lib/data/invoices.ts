@@ -1,3 +1,4 @@
+import { company } from "@/lib/data/company";
 import type { Invoice } from "@/types";
 
 /**
@@ -220,3 +221,24 @@ export const invoices: Invoice[] = [
     ],
   },
 ];
+
+export function getInvoice(invoiceId: string) {
+  return invoices.find((invoice) => invoice.id === invoiceId);
+}
+
+export function getInvoicesByClient(clientId: string) {
+  return invoices.filter((invoice) => invoice.clientId === clientId);
+}
+
+/**
+ * En base, la numérotation sera transactionnelle côté Postgres ; ici on dérive
+ * simplement le prochain numéro des données fictives.
+ */
+export function nextInvoiceNumber() {
+  const highest = invoices.reduce((max, invoice) => {
+    const value = Number.parseInt(invoice.number.split("-")[1] ?? "", 10);
+    return Number.isFinite(value) && value > max ? value : max;
+  }, 0);
+
+  return `${company.invoicePrefix}-${highest + 1}`;
+}

@@ -20,6 +20,25 @@ const SIZES: Record<Size, string> = {
   icon: "h-9 w-9 justify-center",
 };
 
+const BASE = [
+  "inline-flex items-center rounded-xl font-medium transition-colors",
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+  "disabled:pointer-events-none disabled:opacity-50",
+].join(" ");
+
+/** Styles de bouton applicables à un élément non-`button` (ex. `next/link`). */
+export function buttonStyles({
+  variant = "outline",
+  size = "md",
+  className,
+}: {
+  variant?: Variant;
+  size?: Size;
+  className?: string;
+} = {}) {
+  return cn(BASE, VARIANTS[variant], SIZES[size], className);
+}
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
@@ -31,14 +50,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
-        className={cn(
-          "inline-flex items-center rounded-xl font-medium transition-colors",
-          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
-          "disabled:pointer-events-none disabled:opacity-50",
-          VARIANTS[variant],
-          SIZES[size],
-          className,
-        )}
+        className={buttonStyles({ variant, size, className })}
         {...props}
       />
     );

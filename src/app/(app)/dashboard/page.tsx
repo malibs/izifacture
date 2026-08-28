@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
-import { Button } from "@/components/ui/button";
+import { Button, buttonStyles } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CollectionCard } from "@/components/dashboard/collection-card";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
@@ -55,10 +55,13 @@ export default function DashboardPage() {
               <Download className="h-4 w-4" />
               Exporter
             </Button>
-            <Button variant="primary" size="md">
+            <Link
+              href="/invoices/new"
+              className={buttonStyles({ variant: "primary" })}
+            >
               <Plus className="h-4 w-4" />
               Nouvelle facture
-            </Button>
+            </Link>
           </>
         }
       />
