@@ -44,7 +44,10 @@ export async function signIn(
   redirect(safeNext(next));
 }
 
-export async function signUp(formData: FormData): Promise<ActionResult> {
+/** Renvoyé quand Supabase exige une confirmation par e-mail avant la connexion. */
+export type SignUpResult = ActionResult | { ok: true; pendingConfirmation: true };
+
+export async function signUp(formData: FormData): Promise<SignUpResult> {
   const parsed = signUpSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -59,13 +62,15 @@ export async function signUp(formData: FormData): Promise<ActionResult> {
   const supabase = createClient();
 
   // L'organisation et le profil sont créés par le trigger `handle_new_user`.
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: { data: { full_name: fullName, company_name: companyName } },
   });
 
   if (error) return failure("La création du compte a échoué.");
+
+  if (!data.session) return { ok: true, pendingConfirmation: true };
 
   redirect("/dashboard");
 }

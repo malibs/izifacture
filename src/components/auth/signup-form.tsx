@@ -8,7 +8,17 @@ import { Field, Input } from "@/components/ui/field";
 
 export function SignupForm() {
   const [error, setError] = useState<string | null>(null);
+  const [confirmationSent, setConfirmationSent] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  if (confirmationSent) {
+    return (
+      <p className="text-sm text-ink-soft">
+        Compte créé. Ouvre l&apos;e-mail de confirmation que nous venons de
+        t&apos;envoyer, puis connecte-toi.
+      </p>
+    );
+  }
 
   return (
     <form
@@ -17,7 +27,9 @@ export function SignupForm() {
         setError(null);
         startTransition(async () => {
           const result = await signUp(formData);
-          if (result && !result.ok) setError(result.error);
+          if (!result) return;
+          if (!result.ok) setError(result.error);
+          else if ("pendingConfirmation" in result) setConfirmationSent(true);
         });
       }}
     >
