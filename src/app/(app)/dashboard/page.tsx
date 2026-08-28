@@ -162,7 +162,9 @@ export default async function DashboardPage() {
           <div>
             <CardTitle>Dernières factures</CardTitle>
             <CardDescription>
-              Les {recent.length} factures les plus récentes
+              {recent.length > 0
+                ? `Les ${recent.length} factures les plus récentes`
+                : "Aucune facture pour le moment"}
             </CardDescription>
           </div>
           <Link
@@ -173,7 +175,13 @@ export default async function DashboardPage() {
             <ArrowRight className="h-4 w-4" />
           </Link>
         </CardHeader>
-        <InvoiceTable invoices={recent} clients={clients} />
+        {recent.length > 0 ? (
+          <InvoiceTable invoices={recent} clients={clients} />
+        ) : (
+          <div className="px-5 pb-6 text-sm text-ink-soft">
+            Crée ta première facture pour la voir apparaître ici.
+          </div>
+        )}
       </Card>
     </div>
   );
