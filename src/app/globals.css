@@ -22,3 +22,13 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+@page {
+  margin: 16mm;
+}
+
+@media print {
+  body {
+    @apply bg-white;
+  }
+}

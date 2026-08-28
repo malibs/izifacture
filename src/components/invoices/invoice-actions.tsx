@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { Download, Send, Wallet } from "lucide-react";
 
 import { markInvoiceSent, recordPayment } from "@/app/(app)/invoices/actions";
-import { Button } from "@/components/ui/button";
+import { Button, buttonStyles } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
 import type { InvoiceStatus } from "@/types";
 
@@ -41,10 +42,15 @@ export function InvoiceActions({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" type="button" disabled>
+        <Link
+          href={`/invoices/${invoiceId}/print`}
+          target="_blank"
+          rel="noopener"
+          className={buttonStyles({ size: "sm" })}
+        >
           <Download className="h-4 w-4" />
           Télécharger le PDF
-        </Button>
+        </Link>
 
         {status === "draft" && (
           <Button
