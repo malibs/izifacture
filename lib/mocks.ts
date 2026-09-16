@@ -1,0 +1,42 @@
+export const MOCK_INVOICES = [
+  {
+    id: 'INV-2026-001',
+    client: 'Samba Services',
+    amount: 125000,
+    date: '2026-09-10',
+    dueDate: '2026-09-20',
+    status: 'paid',
+  },
+  {
+    id: 'INV-2026-002',
+    client: 'Koffi Consulting',
+    amount: 45000,
+    date: '2026-09-12',
+    dueDate: '2026-09-22',
+    status: 'sent',
+  },
+  {
+    id: 'INV-2026-003',
+    client: 'Afrique Tech',
+    amount: 210000,
+    date: '2026-09-01',
+    dueDate: '2026-09-11',
+    status: 'overdue',
+  },
+  {
+    id: 'INV-2026-004',
+    client: 'Moussa Logistics',
+    amount: 85000,
+    date: '2026-09-14',
+    dueDate: '2026-09-24',
+    status: 'draft',
+  },
+  {
+    id: 'INV-2026-005',
+    client: 'Bakary Store',
+    amount: 32000,
+    date: '2026-09-05',
+    dueDate: '2026-09-15',
+    status: 'paid',
+  },
+];
