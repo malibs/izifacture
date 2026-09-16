@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2, Save, ArrowLeft, FileText, Calendar, User, Hash } from 'lucide-react';
 import Link from 'next/link';
@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { InvoiceSchema, type InvoiceFormValues } from '@/lib/validations/invoice';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/context/StoreContext';
+import { Invoice } from '@/lib/types';
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -36,9 +37,9 @@ export default function NewInvoicePage() {
   const watchedItems = watch('items');
 
   // Calculations
-  const subtotal = watchedItems.reduce((sum, item) => {
+  const subtotal = watchedItems?.reduce((sum, item) => {
     return sum + (Number(item.quantity || 0) * Number(item.price || 0));
-  }, 0);
+  }, 0) || 0;
   const vat = subtotal * 0.18;
   const total = subtotal + vat;
 
@@ -49,20 +50,21 @@ export default function NewInvoicePage() {
     }).format(amount).replace('XOF', 'FCFA');
   };
 
-  const onSubmit = async (data: InvoiceFormValues) => {
+  const onSubmit: SubmitHandler<InvoiceFormValues> = async (data) => {
     try {
       const selectedCustomer = customers.find(c => c.id === data.client_id);
 
-      const invoiceData = {
+      const invoiceData: Omit<Invoice, 'id' | 'client_name'> = {
         client_id: data.client_id,
         invoice_number: data.invoice_number,
         date_issue: data.date_issue,
         date_due: data.date_due,
-        status: 'draft' as const,
+        status: 'draft',
         subtotal,
         vat,
         total,
         notes: data.notes,
+        items: data.items,
       };
 
       await addInvoice(invoiceData, data.items);
@@ -239,7 +241,7 @@ export default function NewInvoicePage() {
                       type="number"
                       {...register(`items.${index}.price`)}
                       className={cn(
-                        "w-full px-4 py-2 bg-white border rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all",
+                        "w-//full px-4 py-2 bg-white border rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all",
                         errors.items?.[index]?.price ? "border-red-500" : "border-slate-200"
                       )}
                     />
