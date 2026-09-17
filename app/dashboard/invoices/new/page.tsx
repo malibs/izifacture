@@ -22,7 +22,7 @@ export default function NewInvoicePage() {
     watch,
     formState: { errors },
   } = useForm<InvoiceFormValues>({
-    resolver: zodResolver(InvoiceSchema),
+    resolver: zodResolver(InvoiceSchema) as any,
     defaultValues: {
       items: [{ description: '', quantity: 1, price: 0 }],
       notes: '',
@@ -36,7 +36,6 @@ export default function NewInvoicePage() {
 
   const watchedItems = watch('items');
 
-  // Calculations
   const subtotal = watchedItems?.reduce((sum, item) => {
     return sum + (Number(item.quantity || 0) * Number(item.price || 0));
   }, 0) || 0;
@@ -107,7 +106,6 @@ export default function NewInvoicePage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Main Document Area */}
         <div className="lg:col-span-8 space-y-8">
           <div className="premium-card p-8 space-y-8">
             <div className="flex items-center gap-3 mb-6">
@@ -229,7 +227,7 @@ export default function NewInvoicePage() {
                       type="number"
                       {...register(`items.${index}.quantity`)}
                       className={cn(
-                        "w-full px-3 py-2 bg-white border rounded-xl text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all",
+                        "w-full px-3 py-2 bg-white border rounded-xl text-sm text-center focus:outline-//none focus:ring-2 focus:ring-brand-500/20 transition-all",
                         errors.items?.[index]?.quantity ? "border-red-500" : "border-slate-200"
                       )}
                     />
@@ -241,7 +239,7 @@ export default function NewInvoicePage() {
                       type="number"
                       {...register(`items.${index}.price`)}
                       className={cn(
-                        "w-//full px-4 py-2 bg-white border rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all",
+                        "w-full px-4 py-2 bg-white border rounded-xl text-sm text-right focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all",
                         errors.items?.[index]?.price ? "border-red-500" : "border-slate-200"
                       )}
                     />
