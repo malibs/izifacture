@@ -10,21 +10,27 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  let response = NextResponse.next({ request });
+
   // Create a server client that reads/writes auth cookies from the request
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
-      set() {
-        // The `set` method is required by the API but we can't set cookies
-        // in middleware for a read-only check. Cookie refresh is handled
-        // client-side by the browser client.
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value);
+        });
+        response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
       },
     },
   });
 
-  // Get the session from the cookie
+  // Get the session from the cookie (refreshes token if needed)
   const { data: { session } } = await supabase.auth.getSession();
 
   const { pathname } = request.nextUrl;
@@ -47,7 +53,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
