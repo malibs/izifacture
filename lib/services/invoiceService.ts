@@ -13,10 +13,22 @@ export const invoiceService = {
 
     if (error) throw error;
 
-    // Map to match our frontend Invoice type (denormalizing client name)
+    // Map DB columns to frontend Invoice type
+    // DB: customer_id → Frontend: client_id
+    // DB: customers.name → Frontend: client_name
     return (data as any[]).map(inv => ({
-      ...inv,
+      id: inv.id,
+      client_id: inv.customer_id,
       client_name: inv.customers?.name || 'Client Inconnu',
+      invoice_number: inv.invoice_number,
+      date_issue: inv.date_issue,
+      date_due: inv.date_due,
+      status: inv.status,
+      subtotal: Number(inv.subtotal),
+      vat: Number(inv.vat),
+      total: Number(inv.total),
+      notes: inv.notes,
+      items: [],
     })) as Invoice[];
   },
 
@@ -24,13 +36,22 @@ export const invoiceService = {
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) throw new Error('Utilisateur non authentifié');
 
-    // 1. Create the invoice
+    // 1. Create the invoice — map frontend `client_id` to DB `customer_id`
+    //    and exclude `items` (stored in a separate table).
     const { data: invoice, error: invError } = await supabase
       .from('invoices')
       .insert([
         {
-          ...invoiceData,
           user_id: user.id,
+          customer_id: invoiceData.client_id,
+          invoice_number: invoiceData.invoice_number,
+          date_issue: invoiceData.date_issue,
+          date_due: invoiceData.date_due,
+          status: invoiceData.status,
+          subtotal: invoiceData.subtotal,
+          vat: invoiceData.vat,
+          total: invoiceData.total,
+          notes: invoiceData.notes,
         },
       ])
       .select()
@@ -53,7 +74,21 @@ export const invoiceService = {
 
     if (itemsError) throw itemsError;
 
-    return invoice as Invoice;
+    // Return in frontend Invoice format
+    return {
+      id: invoice.id,
+      client_id: invoice.customer_id,
+      client_name: '',
+      invoice_number: invoice.invoice_number,
+      date_issue: invoice.date_issue,
+      date_due: invoice.date_due,
+      status: invoice.status,
+      subtotal: Number(invoice.subtotal),
+      vat: Number(invoice.vat),
+      total: Number(invoice.total),
+      notes: invoice.notes,
+      items,
+    } as Invoice;
   },
 
   async updateStatus(id: string, status: Invoice['status']) {
