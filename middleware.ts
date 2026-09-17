@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 
 export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -10,9 +10,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  // Create a server client that reads/writes auth cookies from the request
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      set() {
+        // The `set` method is required by the API but we can't set cookies
+        // in middleware for a read-only check. Cookie refresh is handled
+        // client-side by the browser client.
+      },
+    },
+  });
 
-  // Get the session
+  // Get the session from the cookie
   const { data: { session } } = await supabase.auth.getSession();
 
   const { pathname } = request.nextUrl;

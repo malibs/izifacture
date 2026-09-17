@@ -38,9 +38,11 @@ export const invoiceService = {
 
     if (invError) throw invError;
 
-    // 2. Create the invoice items
+    // 2. Create the invoice items (map frontend `price` to DB `unit_price`)
     const itemsWithId = items.map(item => ({
-      ...item,
+      description: item.description,
+      quantity: item.quantity,
+      unit_price: item.price,
       invoice_id: invoice.id,
       total_price: item.quantity * item.price,
     }));

@@ -114,12 +114,16 @@ CREATE TRIGGER update_profiles_modtime BEFORE UPDATE ON profiles FOR EACH ROW EX
 CREATE TRIGGER update_customers_modtime BEFORE UPDATE ON customers FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER update_invoices_modtime BEFORE UPDATE ON invoices FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
--- Automatically create a profile on signup
+-- Automatically create a profile on signup (reads company_name from user metadata)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
   INSERT INTO public.profiles (id, company_name, company_email)
-  VALUES (new.id, 'Nouvelle Entreprise', new.email);
+  VALUES (
+    new.id,
+    COALESCE(new.raw_user_meta_data->>'company_name', 'Nouvelle Entreprise'),
+    new.email
+  );
   RETURN new;
 END;
 $$ language plpgsql security definer;

@@ -20,29 +20,24 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      // 1. Create the user in Supabase Auth
+      // Create the user in Supabase Auth.
+      // The company name is passed as user metadata; the database trigger
+      // `handle_new_user` reads it and inserts the profile row automatically
+      // (with security definer, bypassing RLS).
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            company_name: companyName,
+          },
+        },
       });
 
       if (authError) throw authError;
 
       if (data.user) {
-        // 2. Create the associated profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              company_name: companyName,
-              company_email: email,
-            },
-          ]);
-
-        if (profileError) throw profileError;
-
-        router.push('/');
+        router.push('/dashboard');
         router.refresh();
       }
     } catch (err: any) {

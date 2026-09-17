@@ -25,7 +25,7 @@ export default function LoginPage() {
       });
 
       if (error) throw error;
-      router.push('/');
+      router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue lors de la connexion');
