@@ -51,7 +51,7 @@ export default function PaymentsPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Paiements</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Paiements</h1>
           <p className="text-sm text-slate-500 font-medium">Suivez vos encaissements et relancez les retards.</p>
         </div>
       </div>

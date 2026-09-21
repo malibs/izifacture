@@ -13,7 +13,17 @@
       "Bash(git push *)",
       "Bash(vercel link *)",
       "Bash(npm run *)",
-      "Bash(vercel --prod)"
+      "Bash(vercel --prod)",
+      "WebFetch(domain:izifacture-beryl.vercel.app)",
+      "Bash(vercel env *)",
+      "Bash(supabase --version)",
+      "Bash(git reset *)",
+      "Bash(git checkout *)",
+      "Bash(vercel --prod --yes)",
+      "Bash(vercel ls *)",
+      "Bash(vercel inspect *)",
+      "Bash(npx tsc *)",
+      "Bash(python3)"
     ]
   }
 }

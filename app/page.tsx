@@ -5,8 +5,17 @@ import Link from "next/link";
 
 export default function LandingPage() {
   const [isAnnual, setIsAnnual] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pricePro = isAnnual ? "4 000" : "5 000";
   const priceBiz = isAnnual ? "12 000" : "15 000";
+
+  const navLinks = [
+    { href: "#fonctionnalites", label: "Fonctionnalités" },
+    { href: "#avantages", label: "Avantages" },
+    { href: "#comment-ca-marche", label: "Comment ça marche" },
+    { href: "#temoignages", label: "Témoignages" },
+    { href: "#tarifs", label: "Tarifs" },
+  ];
 
   return (
     <>
@@ -18,57 +27,36 @@ export default function LandingPage() {
 
       {/* ===== HEADER ===== */}
       <header className="fixed top-0 inset-x-0 z-50 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-        <div className="h-20 max-w-[1240px] mx-auto px-gutter flex items-center justify-between gap-space-md">
+        <div className="h-16 sm:h-20 max-w-[1240px] mx-auto px-gutter flex items-center justify-between gap-space-md">
           <div className="flex items-center gap-space-lg">
             <Link
               href="/"
               className="flex items-center gap-2 group"
             >
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-[0_10px_20px_-4px_rgba(79,70,229,0.35)] group-hover:bg-primary-container transition-all">
-                <span className="material-symbols-outlined text-on-primary text-[22px]">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary flex items-center justify-center shadow-[0_10px_20px_-4px_rgba(79,70,229,0.35)] group-hover:bg-primary-container transition-all">
+                <span className="material-symbols-outlined text-on-primary text-[20px] sm:text-[22px]">
                   bolt
                 </span>
               </div>
               <div className="flex items-baseline tracking-tight">
-                <span className="font-headline-md text-headline-md text-on-surface">
+                <span className="font-headline-sm sm:font-headline-md text-headline-sm sm:text-headline-md text-on-surface">
                   izi
                 </span>
-                <span className="font-headline-md text-headline-md text-primary">
+                <span className="font-headline-sm sm:font-headline-md text-headline-sm sm:text-headline-md text-primary">
                   Facture
                 </span>
               </div>
             </Link>
             <nav className="hidden lg:flex items-center gap-space-lg">
-              <a
-                href="#fonctionnalites"
-                className="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors"
-              >
-                Fonctionnalités
-              </a>
-              <a
-                href="#avantages"
-                className="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors"
-              >
-                Avantages
-              </a>
-              <a
-                href="#comment-ca-marche"
-                className="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors"
-              >
-                Comment ça marche
-              </a>
-              <a
-                href="#temoignages"
-                className="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors"
-              >
-                Témoignages
-              </a>
-              <a
-                href="#tarifs"
-                className="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors"
-              >
-                Tarifs
-              </a>
+              {navLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors"
+                >
+                  {link.label}
+                </a>
+              ))}
             </nav>
           </div>
           <div className="flex items-center gap-space-sm">
@@ -80,17 +68,48 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center font-label-lg text-label-lg text-on-primary bg-primary-container px-space-md py-2.5 rounded-xl shadow-[0_10px_20px_-4px_rgba(79,70,229,0.35)] hover:bg-primary hover:-translate-y-0.5 transition-all"
+              className="inline-flex items-center justify-center font-label-md sm:font-label-lg text-label-md sm:text-label-lg text-on-primary bg-primary-container px-3 sm:px-space-md py-2 sm:py-2.5 rounded-xl shadow-[0_10px_20px_-4px_rgba(79,70,229,0.35)] hover:bg-primary hover:-translate-y-0.5 transition-all"
             >
-              Commencer gratuitement
+              <span className="hidden sm:inline">Commencer gratuitement</span>
+              <span className="sm:hidden">S'inscrire</span>
             </Link>
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-1">
-              <span className="material-symbols-outlined text-on-primary text-[18px]">
-                person
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden w-9 h-9 rounded-xl bg-surface-container-high/60 flex items-center justify-center text-on-surface transition-colors"
+              aria-label="Menu"
+            >
+              <span className="material-symbols-outlined text-[22px]">
+                {mobileMenuOpen ? "close" : "menu"}
               </span>
-            </div>
+            </button>
           </div>
         </div>
+
+        {/* Mobile nav dropdown */}
+        {mobileMenuOpen && (
+          <nav className="lg:hidden bg-surface/95 backdrop-blur-xl border-t border-surface-container-high/40">
+            <div className="px-gutter py-4 flex flex-col gap-1">
+              {navLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 px-4 py-3 rounded-xl transition-colors"
+                >
+                  {link.label}
+                </a>
+              ))}
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="font-label-lg text-label-lg text-primary px-4 py-3 rounded-xl hover:bg-surface-container-high/40 transition-colors sm:hidden"
+              >
+                Connexion
+              </Link>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* ===== MAIN ===== */}

@@ -60,7 +60,7 @@ export default function ReportsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Rapports</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Rapports</h1>
         <p className="text-sm text-slate-500 font-medium">Analysez la performance de votre activité.</p>
       </div>
 

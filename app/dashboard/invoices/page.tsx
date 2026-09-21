@@ -32,14 +32,14 @@ export default function InvoicesPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Factures</h1>
+      <div className="flex items-center justify-between gap-4">
+        <div className="space-y-1 min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Factures</h1>
           <p className="text-sm text-slate-500">Suivi précis de vos émissions et recouvrements.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm active:scale-95">
+        <button className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm active:scale-95 shrink-0">
           <Download className="w-4 h-4" />
-          Exporter la liste
+          <span className="hidden sm:inline">Exporter la liste</span>
         </button>
       </div>
 
@@ -64,9 +64,9 @@ export default function InvoicesPage() {
       </div>
 
       <div className="premium-card overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-4 bg-slate-50/50">
-          <div className="flex items-center gap-3 flex-1">
-            <div className="relative w-full max-w-md group">
+        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50">
+          <div className="flex items-center gap-3 flex-1 w-full">
+            <div className="relative flex-1 max-w-md group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
               <input
                 type="text"
@@ -74,14 +74,14 @@ export default function InvoicesPage() {
                 className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all"
               />
             </div>
-            <button className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all shadow-sm">
+            <button className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-all shadow-sm shrink-0">
               <Filter className="w-4 h-4" />
-              Filtres
+              <span className="hidden sm:inline">Filtres</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <span className="font-medium">Trier par :</span>
+          <div className="flex items-center gap-2 text-sm text-slate-500 shrink-0">
+            <span className="font-medium hidden sm:inline">Trier par :</span>
             <select className="bg-transparent font-semibold text-slate-900 focus:outline-none cursor-pointer">
               <option>Date la plus récente</option>
               <option>Montant le plus élevé</option>

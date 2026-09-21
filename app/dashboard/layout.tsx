@@ -1,4 +1,6 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import { Sidebar } from "@/components/shared/Sidebar";
 import { Header } from "@/components/shared/Header";
 
@@ -7,12 +9,14 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1 ml-64 flex flex-col">
-        <Header />
-        <main className="p-8">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
+        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <main className="p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>

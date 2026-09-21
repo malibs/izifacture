@@ -25,7 +25,7 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Tableau de Bord</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Tableau de Bord</h1>
           <p className="text-sm text-slate-500">Bienvenue sur IziFacture. Voici l'état de vos finances.</p>
         </div>
       </div>

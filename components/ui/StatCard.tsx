@@ -29,11 +29,11 @@ export function StatCard({ title, value, description, trend, variant = 'default'
 
   return (
     <div className={cn(
-      "p-6 rounded-3xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group",
+      "p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group",
       variantStyles[variant]
     )}>
       <div className="flex items-center justify-between mb-3">
-        <p className={cn("text-sm font-semibold tracking-tight", labelStyles[variant])}>
+        <p className={cn("text-xs sm:text-sm font-semibold tracking-tight", labelStyles[variant])}>
           {title}
         </p>
         {trend && (
@@ -49,7 +49,7 @@ export function StatCard({ title, value, description, trend, variant = 'default'
       </div>
 
       <div className="flex items-baseline gap-1">
-        <h3 className="text-3xl font-black tracking-tighter">{value}</h3>
+        <h3 className="text-xl sm:text-3xl font-black tracking-tighter">{value}</h3>
       </div>
 
       {description && (
