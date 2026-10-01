@@ -2,24 +2,36 @@
 
 import React from 'react';
 import { StatCard } from '@/components/ui/StatCard';
-import { TrendingUp, AlertCircle, ArrowRight, CheckCircle } from 'lucide-react';
+import { TrendingUp, AlertCircle, ArrowRight, CheckCircle, Crown } from 'lucide-react';
 import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
+import { getLimitStatus, PLAN_LABELS } from '@/lib/plans';
+import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
-  const { invoices } = useStore();
+  const { invoices, profile } = useStore();
 
   const formatCurrency = (amount: number) => {
+    const currency = profile?.currency || 'XOF';
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'XOF',
-    }).format(amount).replace('XOF', 'FCFA');
+      currency,
+    }).format(amount).replace(currency, currency === 'XOF' ? 'FCFA' : currency);
   };
 
   const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.total, 0);
   const totalPaid = invoices.filter(i => i.status === 'paid').reduce((sum, inv) => sum + inv.total, 0);
   const totalOutstanding = invoices.filter(i => i.status !== 'paid').reduce((sum, inv) => sum + inv.total, 0);
   const totalOverdue = invoices.filter(i => i.status === 'overdue').reduce((sum, inv) => sum + inv.total, 0);
+
+  // Calcul de la limite du plan
+  const plan = profile?.subscription_plan || 'free';
+  const now = new Date();
+  const monthlyCount = invoices.filter(inv => {
+    const invDate = new Date(inv.date_issue);
+    return invDate.getMonth() === now.getMonth() && invDate.getFullYear() === now.getFullYear();
+  }).length;
+  const limitStatus = getLimitStatus(monthlyCount, plan);
 
   return (
     <div className="space-y-8">
@@ -29,6 +41,44 @@ export default function DashboardPage() {
           <p className="text-sm text-slate-500">Bienvenue sur IziFacture. Voici l'état de vos finances.</p>
         </div>
       </div>
+
+      {/* Bannière limite de plan */}
+      {(limitStatus.isNearLimit || limitStatus.isAtLimit) && (
+        <div className={cn(
+          "rounded-2xl p-4 sm:p-5 border-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-500",
+          limitStatus.isAtLimit
+            ? "bg-red-50 border-red-200"
+            : "bg-amber-50 border-amber-200"
+        )}>
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+              limitStatus.isAtLimit ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
+            )}>
+              <Crown className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-900">
+                {limitStatus.isAtLimit
+                  ? `Limite atteinte : ${limitStatus.count}/${limitStatus.max} factures ce mois-ci`
+                  : `Attention : ${limitStatus.count}/${limitStatus.max} factures utilisées ce mois-ci`}
+              </p>
+              <p className="text-xs text-slate-500 font-medium">
+                Plan {PLAN_LABELS[plan]} — {limitStatus.isAtLimit
+                  ? 'passez à un plan supérieur pour continuer'
+                  : `plus que ${limitStatus.remaining} facture${limitStatus.remaining > 1 ? 's' : ''} ce mois-ci`}
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/settings"
+            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 shrink-0"
+          >
+            Améliorer mon plan
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard

@@ -131,3 +131,15 @@ $$ language plpgsql security definer;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- ==========================================
+-- SUBSCRIPTION COLUMNS (run manually in Supabase dashboard)
+-- ==========================================
+
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS subscription_plan TEXT DEFAULT 'free'
+    CHECK (subscription_plan IN ('free', 'pro', 'business')),
+  ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'trial'
+    CHECK (subscription_status IN ('active', 'trial', 'expired')),
+  ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + INTERVAL '14 days'),
+  ADD COLUMN IF NOT EXISTS ninea_rccm TEXT;

@@ -1,4 +1,22 @@
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
+export type SubscriptionPlan = 'free' | 'pro' | 'business';
+export type SubscriptionStatus = 'active' | 'trial' | 'expired';
+
+export interface Profile {
+  id: string;
+  company_name: string;
+  company_email: string;
+  company_phone: string;
+  company_address: string;
+  company_logo_url: string | null;
+  vat_rate: number;
+  currency: string;
+  ninea_rccm: string | null;
+  subscription_plan: SubscriptionPlan;
+  subscription_status: SubscriptionStatus;
+  trial_ends_at: string | null;
+  updated_at: string;
+}
 
 export interface InvoiceItem {
   description: string;

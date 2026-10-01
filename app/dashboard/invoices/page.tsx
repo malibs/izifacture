@@ -4,8 +4,9 @@ import React, { useState } from 'react';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useStore } from '@/context/StoreContext';
-import { Search, Filter, Download, MoreVertical } from 'lucide-react';
+import { Search, Filter, Download, MoreVertical, Eye, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 import { InvoiceStatus } from '@/lib/types';
 
 export default function InvoicesPage() {
@@ -37,10 +38,20 @@ export default function InvoicesPage() {
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Factures</h1>
           <p className="text-sm text-slate-500">Suivi précis de vos émissions et recouvrements.</p>
         </div>
-        <button className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm active:scale-95 shrink-0">
-          <Download className="w-4 h-4" />
-          <span className="hidden sm:inline">Exporter la liste</span>
-        </button>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <Link
+            href="/dashboard/invoices/new"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-brand-500/20 active:scale-95"
+          >
+            <FileText className="w-4 h-4" />
+            <span className="hidden sm:inline">Nouvelle Facture</span>
+            <span className="sm:hidden">Nouvelle</span>
+          </Link>
+          <button className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm active:scale-95 shrink-0">
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Exporter</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -106,7 +117,11 @@ export default function InvoicesPage() {
             <tbody className="divide-y divide-slate-100">
               {invoices.map((invoice) => (
                 <tr key={invoice.id} className="hover:bg-slate-50/80 transition-all group">
-                  <td className="px-6 py-4 text-sm font-bold text-slate-900">{invoice.invoice_number}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-900">
+                    <Link href={`/dashboard/invoices/${invoice.id}`} className="hover:text-brand-600 transition-colors">
+                      {invoice.invoice_number}
+                    </Link>
+                  </td>
                   <td className="px-6 py-4 text-sm font-medium text-slate-600">{invoice.client_name}</td>
                   <td className="px-6 py-4 text-sm text-slate-500">{invoice.date_issue}</td>
                   <td className="px-6 py-4 text-sm text-slate-500">{invoice.date_due}</td>
@@ -126,6 +141,15 @@ export default function InvoicesPage() {
 
                     {activeMenuId === invoice.id && (
                       <div className="absolute right-6 top-12 z-20 w-48 bg-white border border-slate-200 rounded-2xl shadow-2xl p-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <Link
+                          href={`/dashboard/invoices/${invoice.id}`}
+                          onClick={() => setActiveMenuId(null)}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-xl transition-all text-slate-600 hover:bg-slate-50 font-bold"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Voir détails
+                        </Link>
+                        <div className="border-t border-slate-100 my-1" />
                         <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                           Changer le statut
                         </div>

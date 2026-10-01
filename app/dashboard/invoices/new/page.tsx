@@ -1,29 +1,46 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Trash2, Save, ArrowLeft, FileText, Calendar, User, Hash } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowLeft, FileText, Calendar, User, Hash, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { InvoiceSchema, type InvoiceFormValues } from '@/lib/validations/invoice';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/context/StoreContext';
 import { Invoice } from '@/lib/types';
+import { invoiceService } from '@/lib/services/invoiceService';
+import { getLimitStatus } from '@/lib/plans';
 
 export default function NewInvoicePage() {
   const router = useRouter();
-  const { customers, addInvoice } = useStore();
+  const { customers, addInvoice, profile, invoices } = useStore();
+  const [autoNumber, setAutoNumber] = useState('');
+  const [loadingNumber, setLoadingNumber] = useState(true);
+
+  // Vérifier la limite du plan
+  const plan = profile?.subscription_plan || 'free';
+  const limitStatus = getLimitStatus(
+    invoices.filter(inv => {
+      const now = new Date();
+      const invDate = new Date(inv.date_issue);
+      return invDate.getMonth() === now.getMonth() && invDate.getFullYear() === now.getFullYear();
+    }).length,
+    plan,
+  );
 
   const {
     register,
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<InvoiceFormValues>({
     resolver: zodResolver(InvoiceSchema) as any,
     defaultValues: {
+      invoice_number: '',
       items: [{ description: '', quantity: 1, price: 0 }],
       notes: '',
     },
@@ -35,24 +52,48 @@ export default function NewInvoicePage() {
   });
 
   const watchedItems = watch('items');
+  const watchedInvoiceNumber = watch('invoice_number');
+
+  // Générer le numéro de facture automatiquement au chargement
+  useEffect(() => {
+    const generateNumber = async () => {
+      try {
+        const number = await invoiceService.getNextInvoiceNumber();
+        setAutoNumber(number);
+        setValue('invoice_number', number);
+      } catch (err) {
+        // Fallback silencieux — l'utilisateur pourra saisir manuellement
+        console.error('Auto-numbering failed:', err);
+      } finally {
+        setLoadingNumber(false);
+      }
+    };
+    generateNumber();
+  }, [setValue]);
+
+  const vatRate = profile?.vat_rate ?? 18;
 
   const subtotal = watchedItems?.reduce((sum, item) => {
     return sum + (Number(item.quantity || 0) * Number(item.price || 0));
   }, 0) || 0;
-  const vat = subtotal * 0.18;
+  const vat = subtotal * (vatRate / 100);
   const total = subtotal + vat;
 
+  const currency = profile?.currency || 'XOF';
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'XOF',
-    }).format(amount).replace('XOF', 'FCFA');
+      currency,
+    }).format(amount).replace(currency, currency === 'XOF' ? 'FCFA' : currency);
   };
 
   const onSubmit: SubmitHandler<InvoiceFormValues> = async (data) => {
-    try {
-      const selectedCustomer = customers.find(c => c.id === data.client_id);
+    if (limitStatus.isAtLimit) {
+      alert(`Vous avez atteint la limite de ${limitStatus.max} factures/mois du plan ${plan === 'free' ? 'Gratuit' : plan}. Passez à un plan supérieur dans les Paramètres.`);
+      return;
+    }
 
+    try {
       const invoiceData: Omit<Invoice, 'id' | 'client_name'> = {
         client_id: data.client_id,
         invoice_number: data.invoice_number,
@@ -72,6 +113,30 @@ export default function NewInvoicePage() {
       alert(`Erreur lors de l'enregistrement: ${err.message}`);
     }
   };
+
+  // Bannière de limite atteinte
+  if (limitStatus.isAtLimit) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="premium-card p-8 text-center space-y-4">
+          <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900">Limite de factures atteinte</h2>
+          <p className="text-sm text-slate-500 font-medium">
+            Vous avez utilisé vos {limitStatus.max} factures du plan {plan === 'free' ? 'Gratuit' : plan} ce mois-ci.
+            Passez à un plan supérieur pour émettre des factures illimitées.
+          </p>
+          <Link
+            href="/dashboard/settings"
+            className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-brand-500/20 active:scale-95"
+          >
+            Voir les offres
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -139,6 +204,11 @@ export default function NewInvoicePage() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                   <Hash className="w-3 h-3" /> Numéro de facture
+                  {loadingNumber ? (
+                    <Loader2 className="w-3 h-3 animate-spin text-brand-400" />
+                  ) : (
+                    <span className="text-[9px] bg-brand-100 text-brand-600 px-1.5 py-0.5 rounded-full normal-case tracking-normal">Auto</span>
+                  )}
                 </label>
                 <input
                   {...register('invoice_number')}
@@ -149,6 +219,9 @@ export default function NewInvoicePage() {
                   )}
                 />
                 {errors.invoice_number && <p className="text-xs text-red-500 font-medium">{errors.invoice_number.message}</p>}
+                {!loadingNumber && watchedInvoiceNumber === autoNumber && (
+                  <p className="text-[10px] text-slate-400 font-medium">Généré automatiquement — modifiable si besoin.</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -284,7 +357,7 @@ export default function NewInvoicePage() {
                 <span className="font-bold text-slate-900">{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-500 font-medium">TVA (18%)</span>
+                <span className="text-slate-500 font-medium">TVA ({vatRate}%)</span>
                 <span className="font-bold text-slate-900">{formatCurrency(vat)}</span>
               </div>
               <div className="pt-6 border-t border-slate-100 flex justify-between items-center">

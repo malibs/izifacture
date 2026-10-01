@@ -28,6 +28,18 @@ export const customerService = {
     return data as Customer;
   },
 
+  async update(id: string, updates: Partial<Customer>) {
+    const { data, error } = await supabase
+      .from('customers')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Customer;
+  },
+
   async delete(id: string) {
     const { error } = await supabase
       .from('customers')

@@ -16,6 +16,8 @@ import {
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { useStore } from '@/context/StoreContext';
+import { PLAN_LABELS } from '@/lib/plans';
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -34,6 +36,16 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { profile } = useStore();
+
+  const companyName = profile?.company_name || 'Mon Entreprise';
+  const planLabel = profile ? PLAN_LABELS[profile.subscription_plan] : 'Gratuit';
+  const initials = companyName
+    .split(' ')
+    .map(w => w.charAt(0))
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -106,12 +118,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="p-4 mt-auto">
           <div className="bg-slate-800/50 rounded-2xl p-3 border border-slate-700/50">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-sm font-bold text-white ring-2 ring-slate-700">
-                JD
-              </div>
+              {profile?.company_logo_url ? (
+                <img
+                  src={profile.company_logo_url}
+                  alt={companyName}
+                  className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-700"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center text-sm font-bold text-white ring-2 ring-slate-700">
+                  {initials || 'ME'}
+                </div>
+              )}
               <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-semibold text-white truncate">Jean Dupont</p>
-                <p className="text-xs text-slate-500 truncate">Plan Premium</p>
+                <p className="text-sm font-semibold text-white truncate">{companyName}</p>
+                <p className="text-xs text-slate-500 truncate">Plan {planLabel}</p>
               </div>
             </div>
             <button
