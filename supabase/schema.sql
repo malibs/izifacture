@@ -143,3 +143,36 @@ ALTER TABLE profiles
     CHECK (subscription_status IN ('active', 'trial', 'expired')),
   ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + INTERVAL '14 days'),
   ADD COLUMN IF NOT EXISTS ninea_rccm TEXT;
+
+-- ==========================================
+-- STORAGE POLICIES for logos bucket
+-- ==========================================
+
+-- Les logos sont stockés dans le bucket "logos" sous le chemin {user_id}/logo.{ext}
+-- Lecture publique (les logos apparaissent sur les factures/PDF)
+-- Écriture limitée au propriétaire du dossier
+
+CREATE POLICY "Logos are publicly readable"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'logos');
+
+CREATE POLICY "Users can upload their own logo"
+  ON storage.objects FOR INSERT
+  WITH CHECK (
+    bucket_id = 'logos'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+CREATE POLICY "Users can update their own logo"
+  ON storage.objects FOR UPDATE
+  USING (
+    bucket_id = 'logos'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+CREATE POLICY "Users can delete their own logo"
+  ON storage.objects FOR DELETE
+  USING (
+    bucket_id = 'logos'
+    AND (storage.foldername(name))[1] = auth.uid()::text
+  );
