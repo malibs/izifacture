@@ -7,9 +7,14 @@ import { useStore } from '@/context/StoreContext';
 import { profileService } from '@/lib/services/profileService';
 import { PLAN_LIMITS, PLAN_PRICES, PLAN_LABELS } from '@/lib/plans';
 import { SubscriptionPlan } from '@/lib/types';
+import { PaymentModal } from '@/components/payment/PaymentModal';
 
 export default function SettingsPage() {
   const { profile, updateProfileData, refreshProfile, isLoading } = useStore();
+  const [paymentModal, setPaymentModal] = useState<{ isOpen: boolean; plan: 'pro' | 'business' }>({
+    isOpen: false,
+    plan: 'pro',
+  });
 
   const [formData, setFormData] = useState({
     company_name: '',
@@ -23,7 +28,7 @@ export default function SettingsPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Charger les données du profil dans le formulaire
@@ -42,7 +47,7 @@ export default function SettingsPage() {
     }
   }, [profile]);
 
-  const showToast = (type: 'success' | 'error', message: string) => {
+  const showToast = (type: 'success' | 'error' | 'info', message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
   };
@@ -107,7 +112,9 @@ export default function SettingsPage() {
       {toast && (
         <div className={cn(
           "fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300",
-          toast.type === 'success' ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"
+          toast.type === 'success' ? "bg-green-50 text-green-700 border border-green-200" :
+          toast.type === 'info' ? "bg-slate-50 text-slate-700 border border-slate-200" :
+          "bg-red-50 text-red-700 border border-red-200"
         )}>
           {toast.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span className="text-sm font-bold">{toast.message}</span>
@@ -238,7 +245,13 @@ export default function SettingsPage() {
                     </div>
                     <button
                       className="text-xs font-bold text-brand-600 hover:text-brand-700 transition-colors px-3 py-1.5 rounded-lg hover:bg-brand-50"
-                      onClick={() => showToast('success', 'Paiement en ligne bientôt disponible. Contactez-nous pour upgrader !')}
+                      onClick={() => {
+                        if (isUpgrade) {
+                          setPaymentModal({ isOpen: true, plan });
+                        } else {
+                          showToast('info', 'Vous êtes déjà sur le plan gratuit.');
+                        }
+                      }}
                     >
                       {isUpgrade ? 'Passer à' : 'Revenir à'}
                     </button>
@@ -344,6 +357,13 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de paiement */}
+      <PaymentModal
+        isOpen={paymentModal.isOpen}
+        onClose={() => setPaymentModal({ ...paymentModal, isOpen: false })}
+        plan={paymentModal.plan}
+      />
     </div>
   );
 }

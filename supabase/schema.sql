@@ -176,3 +176,31 @@ CREATE POLICY "Users can delete their own logo"
     bucket_id = 'logos'
     AND (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- ==========================================
+-- PAYMENTS TABLE (subscription transactions)
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS payments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  plan TEXT NOT NULL CHECK (plan IN ('pro', 'business')),
+  billing_cycle TEXT NOT NULL CHECK (billing_cycle IN ('monthly', 'annual')),
+  amount DECIMAL(15,2) NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'XOF',
+  provider TEXT NOT NULL CHECK (provider IN ('wave', 'orange', 'paypal')),
+  provider_reference TEXT,
+  notif_token TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'declined', 'canceled', 'expired')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+
+-- Les utilisateurs peuvent voir leurs propres paiements
+CREATE POLICY "Users can view own payments" ON payments FOR SELECT USING (auth.uid() = user_id);
+
+-- Colonne expiration d'abonnement sur profiles
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS subscription_ends_at TIMESTAMP WITH TIME ZONE;

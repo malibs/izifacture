@@ -23,7 +23,39 @@ export const profileService = {
       throw error;
     }
 
-    return this.mapProfile(data);
+    const profile = this.mapProfile(data);
+
+    // Vérifier l'expiration de l'abonnement
+    if (
+      profile.subscription_ends_at &&
+      profile.subscription_status === 'active' &&
+      new Date(profile.subscription_ends_at) < new Date()
+    ) {
+      await this.expireSubscription(user.id);
+      profile.subscription_status = 'expired';
+      profile.subscription_plan = 'free';
+    }
+
+    return profile;
+  },
+
+  /**
+   * Fait passer un abonnement expiré au plan gratuit.
+   * Appelé quand subscription_ends_at est dépassé.
+   */
+  async expireSubscription(userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        subscription_plan: 'free',
+        subscription_status: 'expired',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Erreur lors de l\'expiration de l\'abonnement:', error);
+    }
   },
 
   /**
@@ -111,6 +143,7 @@ export const profileService = {
       subscription_plan: data.subscription_plan || 'free',
       subscription_status: data.subscription_status || 'trial',
       trial_ends_at: data.trial_ends_at || null,
+      subscription_ends_at: data.subscription_ends_at || null,
       updated_at: data.updated_at || '',
     };
   },

@@ -1,6 +1,9 @@
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
 export type SubscriptionPlan = 'free' | 'pro' | 'business';
 export type SubscriptionStatus = 'active' | 'trial' | 'expired';
+export type PaymentProvider = 'wave' | 'orange' | 'paypal';
+export type PaymentStatus = 'pending' | 'approved' | 'declined' | 'canceled' | 'expired';
+export type BillingCycle = 'monthly' | 'annual';
 
 export interface Profile {
   id: string;
@@ -15,7 +18,21 @@ export interface Profile {
   subscription_plan: SubscriptionPlan;
   subscription_status: SubscriptionStatus;
   trial_ends_at: string | null;
+  subscription_ends_at: string | null;
   updated_at: string;
+}
+
+export interface Payment {
+  id: string;
+  user_id: string;
+  plan: SubscriptionPlan;
+  billing_cycle: BillingCycle;
+  amount: number;
+  currency: string;
+  provider: PaymentProvider;
+  provider_reference: string | null;
+  status: PaymentStatus;
+  created_at: string;
 }
 
 export interface InvoiceItem {

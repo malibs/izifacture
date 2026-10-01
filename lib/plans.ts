@@ -49,6 +49,13 @@ export const PLAN_PRICES: Record<SubscriptionPlan, { monthly: number; annual: nu
   business: { monthly: 15000, annual: 12000 },
 };
 
+// Prix en USD pour PayPal (ne supporte pas XOF)
+export const PLAN_PRICES_USD: Record<SubscriptionPlan, { monthly: number; annual: number }> = {
+  free: { monthly: 0, annual: 0 },
+  pro: { monthly: 9, annual: 72 },
+  business: { monthly: 25, annual: 200 },
+};
+
 export const PLAN_LABELS: Record<SubscriptionPlan, string> = {
   free: 'Gratuit',
   pro: 'Pro',
